@@ -19,8 +19,7 @@
     "format": "prettier --ignore-unknown --write 'src/**/*'",
     "start": "node --import ./dist/sentry.js dist/main.js",
     "start:dev": "tsx watch --clear-screen=false --import ./src/sentry.ts src/main.ts | pino-pretty",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org xfoxfu --project seedir ./dist && sentry-cli sourcemaps upload --org xfoxfu --project seedir ./dist",
-    "typeorm": "typeorm-ts-node-esm"
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org xfoxfu --project seedir ./dist && sentry-cli sourcemaps upload --org xfoxfu --project seedir ./dist"
   },
   "keywords": [],
   "author": "Yuze Fu <i@xfox.me>",
@@ -46,7 +45,6 @@
     "pino-pretty": "^11.1.0",
     "prettier": "^3.3.1",
     "tailwindcss": "^3.4.4",
-    "ts-tqdm": "^0.8.6",
     "tsx": "^4.14.0",
     "typescript": "^5.4.5"
   },
@@ -57,16 +55,11 @@
     "cors": "^2.8.5",
     "drizzle-orm": "^0.31.2",
     "express": "^4.19.2",
-    "fast-xml-parser": "^4.4.0",
-    "jszip": "^3.10.1",
-    "ky": "^1.3.0",
     "lodash": "^4.17.21",
     "loglevel": "^1.9.1",
     "pg": "^8.12.0",
     "pino": "^9.1.0",
     "pino-http": "^10.1.0",
-    "reflect-metadata": "^0.2.2",
-    "typeorm": "^0.3.20",
     "ulid": "^2.3.0"
   },
   "prettier": {
