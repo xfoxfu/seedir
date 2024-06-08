@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "allowJs": true
+  },
+  "extends": "./tsconfig.json",
+  "include": [
+    "bin/**/*.ts",
+    ".eslintrc.cjs",
+    "tailwind.config.js",
+    "drizzle.config.ts"
+  ]
+}
