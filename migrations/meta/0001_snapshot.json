@@ -1,6 +1,6 @@
 {
-  "id": "c576dfc9-57ef-4718-ac92-3adc4fced111",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "96da2026-69ef-46fc-a2ef-b26f2e044808",
+  "prevId": "c576dfc9-57ef-4718-ac92-3adc4fced111",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -130,7 +130,7 @@
         },
         "size": {
           "name": "size",
-          "type": "integer",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": false
         },

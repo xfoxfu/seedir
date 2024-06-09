@@ -1,19 +1,10 @@
 import { db } from "./database.js";
+import { logger } from "./log.js";
+import { worker } from "./worker.js";
 import * as Sentry from "@sentry/node";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import express from "express";
-import { pino } from "pino";
 import { pinoHttp } from "pino-http";
-
-const logger = pino();
-
-// validate env vars
-if (
-  process.env["LOG_LEVEL"] &&
-  !["fatal", "error", "warn", "info", "debug", "trace"].includes(process.env["LOG_LEVEL"])
-) {
-  throw new Error("invalid LOG_LEVEL");
-}
-logger.level = (process.env["LOG_LEVEL"] as (typeof logger)["level"]) ?? "info";
 
 const app = express();
 
@@ -38,6 +29,13 @@ app.use(express.static("public"));
 
 Sentry.setupExpressErrorHandler(app);
 
-app.listen(3000);
+const main = async () => {
+  await migrate(db, { migrationsFolder: "./migrations" });
+  await worker.start();
 
-logger.info("seedir listening on 3000");
+  app.listen(3000);
+
+  logger.info("seedir listening on 3000");
+};
+
+main().catch(console.error);

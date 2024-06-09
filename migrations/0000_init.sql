@@ -1,10 +1,11 @@
 CREATE TABLE IF NOT EXISTS "listing" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"title" text NOT NULL,
-	"published_at" time with time zone NOT NULL,
+	"published_at" timestamp with time zone NOT NULL,
 	"source_site" text NOT NULL,
 	"source_link" text NOT NULL,
 	"torrent_link" text NOT NULL,
+	"info_hash" text NOT NULL,
 	"torrent_id" uuid NOT NULL,
 	CONSTRAINT "listing_source_link_unique" UNIQUE("source_link")
 );
@@ -12,12 +13,13 @@ CREATE TABLE IF NOT EXISTS "listing" (
 CREATE TABLE IF NOT EXISTS "torrent" (
 	"id" uuid PRIMARY KEY NOT NULL,
 	"title" text NOT NULL,
-	"info_hash" text NOT NULL
+	"info_hash_norm" text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "torrent_file" (
 	"id" uuid PRIMARY KEY NOT NULL,
-	"path" text[] NOT NULL,
+	"path" text NOT NULL,
+	"size" integer,
 	"torrent_id" uuid NOT NULL
 );
 --> statement-breakpoint

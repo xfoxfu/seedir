@@ -70,7 +70,7 @@
     "pino-http": "^10.1.0",
     "rss-parser": "^3.13.0",
     "typia": "^6.0.6",
-    "ulid": "^2.3.0"
+    "ulidx": "^2.3.0"
   },
   "prettier": {
     "printWidth": 120,
