@@ -1,0 +1,3 @@
+src/lib/validator/*
+tsconfig.json
+tsconfig.*.json
