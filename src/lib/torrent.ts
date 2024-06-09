@@ -22,8 +22,12 @@ export interface SingleFileTorrent {
 }
 
 export interface TorrentFileV1 {
-  /** The URL of the tracker. */
-  "announce": Uint8Array;
+  /**
+   * The URL of the tracker.
+   *
+   * Optional for compatiblity with some trackers.
+   */
+  "announce"?: Uint8Array;
   /** This maps to a dictionary, with keys described below. */
   "info": (MultipleFileTorrent | SingleFileTorrent) & {
     /**
@@ -58,9 +62,11 @@ export interface TorrentFileV1 {
      * including the key-value pair "private=1" in the "info" dict of the
      * torrent's metainfo file.
      *
+     * `0` is for compatibility with some trackers.
+     *
      * @see BEP-0027
      */
-    "private"?: 1;
+    "private"?: 1 | 0;
   };
   /**
    * A trackerless torrent dictionary does not have an "announce" key. Instead,

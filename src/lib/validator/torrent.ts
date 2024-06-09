@@ -12,10 +12,10 @@ export const isSingleFileTorrent = (input: any): input is SingleFileTorrent => {
     return "object" === typeof input && null !== input && $io0(input);
 };
 export const isTorrentFileV1 = (input: any): input is TorrentFileV1 => {
-    const $io0 = (input: any): boolean => input.announce instanceof Uint8Array && ("object" === typeof input.info && null !== input.info && $iu0(input.info)) && (undefined === input.nodes || Array.isArray(input.nodes) && input.nodes.every((elem: any) => Array.isArray(elem) && (elem.length === 2 && elem[0] instanceof Uint8Array && "number" === typeof elem[1]))) && (undefined === input["announce-list"] || Array.isArray(input["announce-list"]) && input["announce-list"].every((elem: any) => Array.isArray(elem) && elem.every((elem: any) => elem instanceof Uint8Array))) && (undefined === input["url-list"] || Array.isArray(input["url-list"]) && input["url-list"].every((elem: any) => elem instanceof Uint8Array));
-    const $io1 = (input: any): boolean => Array.isArray(input.files) && input.files.every((elem: any) => "object" === typeof elem && null !== elem && $io2(elem)) && (null !== input.length && undefined === input.length) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 1 === input.private);
+    const $io0 = (input: any): boolean => (undefined === input.announce || input.announce instanceof Uint8Array) && ("object" === typeof input.info && null !== input.info && $iu0(input.info)) && (undefined === input.nodes || Array.isArray(input.nodes) && input.nodes.every((elem: any) => Array.isArray(elem) && (elem.length === 2 && elem[0] instanceof Uint8Array && "number" === typeof elem[1]))) && (undefined === input["announce-list"] || Array.isArray(input["announce-list"]) && input["announce-list"].every((elem: any) => Array.isArray(elem) && elem.every((elem: any) => elem instanceof Uint8Array))) && (undefined === input["url-list"] || Array.isArray(input["url-list"]) && input["url-list"].every((elem: any) => elem instanceof Uint8Array));
+    const $io1 = (input: any): boolean => Array.isArray(input.files) && input.files.every((elem: any) => "object" === typeof elem && null !== elem && $io2(elem)) && (null !== input.length && undefined === input.length) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 0 === input.private || 1 === input.private);
     const $io2 = (input: any): boolean => "number" === typeof input.length && (Array.isArray(input.path) && input.path.every((elem: any) => elem instanceof Uint8Array));
-    const $io3 = (input: any): boolean => "number" === typeof input.length && (null !== input.files && undefined === input.files) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 1 === input.private);
+    const $io3 = (input: any): boolean => "number" === typeof input.length && (null !== input.files && undefined === input.files) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 0 === input.private || 1 === input.private);
     const $iu0 = (input: any): any => (() => {
         if ("number" === typeof input.length)
             return $io3(input);
@@ -173,10 +173,10 @@ export const validateSingleFileTorrent = (input: any): typia.IValidation<SingleF
 export const validateTorrentFileV1 = (input: any): typia.IValidation<TorrentFileV1> => {
     const errors = [] as any[];
     const __is = (input: any): input is TorrentFileV1 => {
-        const $io0 = (input: any): boolean => input.announce instanceof Uint8Array && ("object" === typeof input.info && null !== input.info && $iu0(input.info)) && (undefined === input.nodes || Array.isArray(input.nodes) && input.nodes.every((elem: any) => Array.isArray(elem) && (elem.length === 2 && elem[0] instanceof Uint8Array && "number" === typeof elem[1]))) && (undefined === input["announce-list"] || Array.isArray(input["announce-list"]) && input["announce-list"].every((elem: any) => Array.isArray(elem) && elem.every((elem: any) => elem instanceof Uint8Array))) && (undefined === input["url-list"] || Array.isArray(input["url-list"]) && input["url-list"].every((elem: any) => elem instanceof Uint8Array));
-        const $io1 = (input: any): boolean => Array.isArray(input.files) && input.files.every((elem: any) => "object" === typeof elem && null !== elem && $io2(elem)) && (null !== input.length && undefined === input.length) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 1 === input.private);
+        const $io0 = (input: any): boolean => (undefined === input.announce || input.announce instanceof Uint8Array) && ("object" === typeof input.info && null !== input.info && $iu0(input.info)) && (undefined === input.nodes || Array.isArray(input.nodes) && input.nodes.every((elem: any) => Array.isArray(elem) && (elem.length === 2 && elem[0] instanceof Uint8Array && "number" === typeof elem[1]))) && (undefined === input["announce-list"] || Array.isArray(input["announce-list"]) && input["announce-list"].every((elem: any) => Array.isArray(elem) && elem.every((elem: any) => elem instanceof Uint8Array))) && (undefined === input["url-list"] || Array.isArray(input["url-list"]) && input["url-list"].every((elem: any) => elem instanceof Uint8Array));
+        const $io1 = (input: any): boolean => Array.isArray(input.files) && input.files.every((elem: any) => "object" === typeof elem && null !== elem && $io2(elem)) && (null !== input.length && undefined === input.length) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 0 === input.private || 1 === input.private);
         const $io2 = (input: any): boolean => "number" === typeof input.length && (Array.isArray(input.path) && input.path.every((elem: any) => elem instanceof Uint8Array));
-        const $io3 = (input: any): boolean => "number" === typeof input.length && (null !== input.files && undefined === input.files) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 1 === input.private);
+        const $io3 = (input: any): boolean => "number" === typeof input.length && (null !== input.files && undefined === input.files) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 0 === input.private || 1 === input.private);
         const $iu0 = (input: any): any => (() => {
             if ("number" === typeof input.length)
                 return $io3(input);
@@ -190,17 +190,17 @@ export const validateTorrentFileV1 = (input: any): typia.IValidation<TorrentFile
     if (false === __is(input)) {
         const $report = (createValidate as any).report(errors);
         ((input: any, _path: string, _exceptionable: boolean = true): input is TorrentFileV1 => {
-            const $vo0 = (input: any, _path: string, _exceptionable: boolean = true): boolean => [input.announce instanceof Uint8Array || $report(_exceptionable, {
+            const $vo0 = (input: any, _path: string, _exceptionable: boolean = true): boolean => [undefined === input.announce || input.announce instanceof Uint8Array || $report(_exceptionable, {
                     path: _path + ".announce",
-                    expected: "Uint8Array",
+                    expected: "(Uint8Array | undefined)",
                     value: input.announce
                 }), ("object" === typeof input.info && null !== input.info || $report(_exceptionable, {
                     path: _path + ".info",
-                    expected: "(MultipleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 1; } | SingleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 1; })",
+                    expected: "(MultipleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 0 | 1; } | SingleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 0 | 1; })",
                     value: input.info
                 })) && $vu0(input.info, _path + ".info", true && _exceptionable) || $report(_exceptionable, {
                     path: _path + ".info",
-                    expected: "(MultipleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 1; } | SingleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 1; })",
+                    expected: "(MultipleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 0 | 1; } | SingleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 0 | 1; })",
                     value: input.info
                 }), undefined === input.nodes || (Array.isArray(input.nodes) || $report(_exceptionable, {
                     path: _path + ".nodes",
@@ -302,9 +302,9 @@ export const validateTorrentFileV1 = (input: any): typia.IValidation<TorrentFile
                     path: _path + ".pieces",
                     expected: "Uint8Array",
                     value: input.pieces
-                }), undefined === input.private || 1 === input.private || $report(_exceptionable, {
+                }), undefined === input.private || 0 === input.private || 1 === input.private || $report(_exceptionable, {
                     path: _path + ".private",
-                    expected: "(1 | undefined)",
+                    expected: "(0 | 1 | undefined)",
                     value: input.private
                 })].every((flag: boolean) => flag);
             const $vo2 = (input: any, _path: string, _exceptionable: boolean = true): boolean => ["number" === typeof input.length || $report(_exceptionable, {
@@ -348,9 +348,9 @@ export const validateTorrentFileV1 = (input: any): typia.IValidation<TorrentFile
                     path: _path + ".pieces",
                     expected: "Uint8Array",
                     value: input.pieces
-                }), undefined === input.private || 1 === input.private || $report(_exceptionable, {
+                }), undefined === input.private || 0 === input.private || 1 === input.private || $report(_exceptionable, {
                     path: _path + ".private",
-                    expected: "(1 | undefined)",
+                    expected: "(0 | 1 | undefined)",
                     value: input.private
                 })].every((flag: boolean) => flag);
             const $vu0 = (input: any, _path: string, _exceptionable: boolean = true): any => (() => {
@@ -361,7 +361,7 @@ export const validateTorrentFileV1 = (input: any): typia.IValidation<TorrentFile
                 else
                     return $report(_exceptionable, {
                         path: _path,
-                        expected: "(SingleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 1; } | MultipleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 1; })",
+                        expected: "(SingleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 0 | 1; } | MultipleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 0 | 1; })",
                         value: input
                     });
             })();
@@ -594,9 +594,9 @@ export const pruneSingleFileTorrent = (input: SingleFileTorrent): void => {
         $po0(input);
 };
 export const pruneTorrentFileV1 = (input: TorrentFileV1): void => {
-    const $io1 = (input: any): boolean => Array.isArray(input.files) && input.files.every((elem: any) => "object" === typeof elem && null !== elem && $io2(elem)) && (null !== input.length && undefined === input.length) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 1 === input.private);
+    const $io1 = (input: any): boolean => Array.isArray(input.files) && input.files.every((elem: any) => "object" === typeof elem && null !== elem && $io2(elem)) && (null !== input.length && undefined === input.length) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 0 === input.private || 1 === input.private);
     const $io2 = (input: any): boolean => "number" === typeof input.length && (Array.isArray(input.path) && input.path.every((elem: any) => elem instanceof Uint8Array));
-    const $io3 = (input: any): boolean => "number" === typeof input.length && (null !== input.files && undefined === input.files) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 1 === input.private);
+    const $io3 = (input: any): boolean => "number" === typeof input.length && (null !== input.files && undefined === input.files) && input.name instanceof Uint8Array && "number" === typeof input["piece length"] && input.pieces instanceof Uint8Array && (undefined === input.private || 0 === input.private || 1 === input.private);
     const $iu0 = (input: any): any => (() => {
         if ("number" === typeof input.length)
             return $io3(input);
@@ -649,7 +649,7 @@ export const pruneTorrentFileV1 = (input: TorrentFileV1): void => {
             return $po1(input);
         else
             $throws({
-                expected: "(SingleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 1; } | MultipleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 1; })",
+                expected: "(SingleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 0 | 1; } | MultipleFileTorrent & { name: Uint8Array; \"piece length\": number; pieces: Uint8Array; private?: 0 | 1; })",
                 value: input
             });
     })();

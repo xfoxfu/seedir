@@ -31,7 +31,7 @@ Sentry.setupExpressErrorHandler(app);
 
 const main = async () => {
   await migrate(db, { migrationsFolder: "./migrations" });
-  await worker.start();
+  worker.start();
 
   app.listen(3000);
 
