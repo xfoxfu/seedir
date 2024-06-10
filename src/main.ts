@@ -1,11 +1,21 @@
-import { config, loadConfig } from "./config.js";
+import { config } from "./config.js";
 import { db } from "./database.js";
 import { logger } from "./log.js";
 import { worker } from "./worker.js";
 import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import express from "express";
 import { pinoHttp } from "pino-http";
+
+if (config.sentry_dsn) {
+  Sentry.init({
+    dsn: config.sentry_dsn,
+    integrations: [nodeProfilingIntegration()],
+    tracesSampleRate: 1.0,
+    profilesSampleRate: 1.0,
+  });
+}
 
 const app = express();
 
@@ -29,8 +39,6 @@ app.use(express.static("public"));
 Sentry.setupExpressErrorHandler(app);
 
 const main = async () => {
-  await loadConfig();
-
   if (config.database.auto_migrate) {
     await migrate(db, { migrationsFolder: "./migrations" });
   }

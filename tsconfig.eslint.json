@@ -5,8 +5,7 @@
   },
   "extends": "./tsconfig.json",
   "include": [
-    "bin/**/*.ts",
-    ".eslintrc.cjs",
+    "eslint.config.js",
     "tailwind.config.js",
     "drizzle.config.ts"
   ]

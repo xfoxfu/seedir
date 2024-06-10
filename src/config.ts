@@ -4,47 +4,55 @@ import { z } from "zod";
 
 const Config = z.object({
   /**
+   * Sentry DSN
+   */
+  sentry_dsn: z.string().optional(),
+  /**
    * configuration related to database
    */
-  database: z.object({
-    /**
-     * connection string
-     */
-    url: z.string().url().default("postgres://postgres@localhost/seedir"),
-    /**
-     * run migrations automatically
-     */
-    auto_migrate: z.boolean().default(true),
-  }),
+  database: z
+    .object({
+      /**
+       * connection string
+       */
+      url: z.string().url().default("postgres://postgres@localhost/seedir"),
+      /**
+       * run migrations automatically
+       */
+      auto_migrate: z.boolean().default(true),
+    })
+    .default({}),
   /**
    * configuration related to background worker
    */
-  worker: z.object({
-    /**
-     * enable background worker for auto torrent scraping
-     */
-    enabled: z.boolean().default(true),
-    /**
-     * interval between processing (in seconds)
-     */
-    process_interval: z
-      .number()
-      .int()
-      .positive()
-      .default(30 * 60),
-    /**
-     * interval between processing page in same source
-     */
-    page_interval: z.number().int().positive().default(60),
-    /**
-     * interval between processing torrent (if download torrent)
-     */
-    torrent_inverval: z.number().int().positive().default(30),
-    /**
-     * maxium page to retrieve, `0` for no limit
-     */
-    page_limit: z.number().int().nonnegative().default(5),
-  }),
+  worker: z
+    .object({
+      /**
+       * enable background worker for auto torrent scraping
+       */
+      enabled: z.boolean().default(true),
+      /**
+       * interval between processing (in seconds)
+       */
+      process_interval: z
+        .number()
+        .int()
+        .positive()
+        .default(30 * 60),
+      /**
+       * interval between processing page in same source
+       */
+      page_interval: z.number().int().positive().default(60),
+      /**
+       * interval between processing torrent (if download torrent)
+       */
+      torrent_inverval: z.number().int().positive().default(30),
+      /**
+       * maxium page to retrieve, `0` for no limit
+       */
+      page_limit: z.number().int().nonnegative().default(5),
+    })
+    .default({}),
 });
 
 export const config: z.infer<typeof Config> = {} as unknown as typeof config;
@@ -79,3 +87,5 @@ export const loadConfig = async () => {
   }
   Object.assign(config, Config.parse(config));
 };
+
+await loadConfig();

@@ -18,8 +18,8 @@
     "lint:tsc": "tsc --noEmit",
     "lint": "concurrently 'pnpm:lint:*' --group",
     "format": "prettier --ignore-unknown --write 'src/**/*'",
-    "start": "node --import ./dist/sentry.js dist/main.js",
-    "start:dev": "tsx watch --clear-screen=false --import ./src/sentry.ts src/main.ts | pino-pretty",
+    "start": "node --import @sentry/node/preload dist/main.js",
+    "start:dev": "tsx watch --clear-screen=false --import @sentry/node/preload src/main.ts | pino-pretty",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org xfoxfu --project seedir ./dist && sentry-cli sourcemaps upload --org xfoxfu --project seedir ./dist"
   },
   "keywords": [],
