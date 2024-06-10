@@ -1,3 +1,4 @@
+import { config } from "./config.js";
 import { relations } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { bigint, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
@@ -5,7 +6,7 @@ import pg from "pg";
 import { ulid, ulidToUUID } from "ulidx";
 
 const pool = new pg.Pool({
-  connectionString: "postgres://xfoxfu@localhost/seedir",
+  connectionString: config.database.url,
 });
 
 export const torrent = pgTable("torrent", {
