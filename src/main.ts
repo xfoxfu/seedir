@@ -1,3 +1,4 @@
+import { config, loadConfig } from "./config.js";
 import { db } from "./database.js";
 import { logger } from "./log.js";
 import { worker } from "./worker.js";
@@ -28,8 +29,14 @@ app.use(express.static("public"));
 Sentry.setupExpressErrorHandler(app);
 
 const main = async () => {
-  await migrate(db, { migrationsFolder: "./migrations" });
-  worker.start();
+  await loadConfig();
+
+  if (config.database.auto_migrate) {
+    await migrate(db, { migrationsFolder: "./migrations" });
+  }
+  if (config.worker.enabled) {
+    worker.start();
+  }
 
   app.listen(3000);
 

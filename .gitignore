@@ -1,5 +1,9 @@
 # data directory for source database
 data
+# configuration files
+# settings.toml
+# settings.*.toml
+settings.local.toml
 
 # Created by https://www.toptal.com/developers/gitignore/api/node
 # Edit at https://www.toptal.com/developers/gitignore?templates=node
