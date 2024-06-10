@@ -68,7 +68,7 @@ export const loadConfig = async () => {
   for (const file of files) {
     try {
       const content = await fs.readFile(file);
-      const parsed = parse(content.toString());
+      const parsed = parse(content.toString()) as unknown;
       Object.assign(config, parsed);
     } catch (e) {
       if (typeof e === "object" && e !== null && "code" in e && typeof e.code === "string" && e.code === "ENOENT") {
