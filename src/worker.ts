@@ -15,6 +15,7 @@ const sleep = (s: number, reason: string) => {
 
 export class Worker {
   protected sources: Source[];
+  protected processing = false;
 
   constructor() {
     this.sources = [new AcgRipRssSource(), new BangumiMoeSource(), new DmhyRssSource()];
@@ -96,9 +97,18 @@ export class Worker {
   }
 
   public async processAllSources(): Promise<void> {
-    logger.info("start processing all sources");
-    await Promise.all(this.sources.map((source) => this.processSource(source)));
-    logger.info("finished processing all sources");
+    if (this.processing) {
+      logger.info("skip processing since this.processing=true");
+      return;
+    }
+    this.processing = true;
+    try {
+      logger.info("start processing all sources");
+      await Promise.all(this.sources.map((source) => this.processSource(source)));
+      logger.info("finished processing all sources");
+    } finally {
+      this.processing = false;
+    }
   }
 
   public start() {
