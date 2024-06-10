@@ -5,6 +5,7 @@
   "description": "List of torrents on major anime trackers",
   "private": true,
   "main": "src/lib.ts",
+  "packageManager": "pnpm@9.2.0",
   "scripts": {
     "build": "concurrently 'pnpm:build:*' --group",
     "build:ts": "tsc",
