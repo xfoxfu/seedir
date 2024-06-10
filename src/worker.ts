@@ -1,10 +1,17 @@
+import { config } from "./config.js";
 import * as db from "./database.js";
 import { enrichTorrentRemote } from "./lib/torrent_enrich.js";
 import { logger } from "./log.js";
 import { BangumiMoeSource } from "./source/bangumi.js";
 import { Source } from "./source/index.js";
 import { AcgRipRssSource, DmhyRssSource } from "./source/rss.js";
+import * as Sentry from "@sentry/node";
 import { eq } from "drizzle-orm/expressions";
+
+const sleep = (s: number, reason: string) => {
+  logger.debug(`sleeping for ${s} seconds since ${reason}`);
+  return new Promise((r) => setTimeout(r, s * 1000));
+};
 
 export class Worker {
   protected sources: Source[];
@@ -62,10 +69,13 @@ export class Worker {
           });
           logger.info(`created listing for ${item.source_link}`);
         });
+        await sleep(config.worker.torrent_inverval, `config.worker.torrent_inverval on ${source.name}`);
       } catch (e) {
         logger.error(e, `failed to handle torrent ${item.source_link}: ` + (e as Error).message);
+        Sentry.captureException(e, { tags: { source: source.name, link: item.source_link } });
       }
     }
+    logger.info(`finished ${source.name} at page ${page}, has_new=${hasNew}`);
     return hasNew;
   }
 
@@ -75,7 +85,13 @@ export class Worker {
     do {
       hasNew = await this.processSourceAtPage(source, page);
       page += 1;
-      if (page > 2) break;
+      await sleep(config.worker.page_interval, `config.worker.page_interval on ${source.name}`);
+      if (config.worker.page_limit && page > config.worker.page_limit) {
+        const msg = `${source.name} at page ${page} reaching limit of ${config.worker.page_limit} while having new content`;
+        logger.warn(msg);
+        Sentry.captureMessage(msg, { tags: { source: source.name }, level: "warning" });
+        break;
+      }
     } while (hasNew && source.supportPagination);
   }
 
@@ -87,12 +103,9 @@ export class Worker {
 
   public start() {
     this.processAllSources().catch(logger.error);
-    setInterval(
-      () => {
-        this.processAllSources().catch(logger.error);
-      },
-      10 * 60 * 1000,
-    );
+    setInterval(() => {
+      this.processAllSources().catch(logger.error);
+    }, config.worker.process_interval * 1000);
   }
 }
 
