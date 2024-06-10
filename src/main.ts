@@ -12,7 +12,7 @@ app.use(pinoHttp({ logger }));
 
 app.get("/", (req, res, next) => {
   (async () => {
-    res.json(
+    res.status(200).json(
       await db.query.torrent.findMany({
         with: {
           torrent_files: true,
@@ -20,9 +20,7 @@ app.get("/", (req, res, next) => {
         },
       }),
     );
-  })()
-    .then(() => next())
-    .catch((err) => next(err));
+  })().catch((err) => next(err));
 });
 
 app.use(express.static("public"));

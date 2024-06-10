@@ -1,5 +1,5 @@
 import { USER_AGENT } from "../source/index.js";
-import { isTorrentFileV1, validateTorrentFileV1 } from "./validator/torrent.js";
+import { TorrentV1 } from "./torrent.js";
 import bencode from "bencode";
 import ky from "ky";
 
@@ -21,30 +21,33 @@ const arrayBufferToHexString = (a: Uint8Array): string => {
 const arr2text = (a: Uint8Array): string => new TextDecoder().decode(a);
 
 export const enrichTorrent = async (content: Uint8Array): Promise<Torrent> => {
-  const torrent = (await bencode.decode(Buffer.from(content))) as unknown;
-  if (!isTorrentFileV1(torrent)) {
-    throw new Error("invalid torrent: " + JSON.stringify(validateTorrentFileV1(torrent)));
+  const rawTorrent = (await bencode.decode(Buffer.from(content))) as unknown;
+  const { data: torrent, error } = TorrentV1.safeParse(rawTorrent);
+  if (!torrent) {
+    throw new Error("invalid torrent: " + JSON.stringify(error), { cause: error });
   }
 
-  const hash = await sha1(bencode.encode(torrent.info));
+  const hash = await sha1(bencode.encode((rawTorrent as TorrentV1).info));
   const hashNorm = await sha1(
     bencode.encode({
+      "name": torrent.info.name,
       "piece length": torrent.info["piece length"],
       "pieces": torrent.info.pieces,
-      "files": torrent.info.files?.map((f) => ({ length: f.length, path: f.path })),
-      "length": torrent.info.length,
+      "files": "files" in torrent.info ? torrent.info.files?.map((f) => ({ length: f.length, path: f.path })) : null,
+      "length": "length" in torrent.info ? torrent.info.length : null,
     }),
   );
 
   const files: Torrent["files"] = [];
-  if (torrent.info.length) {
+  if (!("files" in torrent.info)) {
     files.push({ path: arr2text(torrent.info.name), size: torrent.info.length });
-  }
-  for (const file of torrent.info.files ?? []) {
-    files.push({
-      path: arr2text(torrent.info.name) + "/" + file.path.map((seg) => arr2text(seg)).join("/"),
-      size: file.length,
-    });
+  } else {
+    for (const file of torrent.info.files ?? []) {
+      files.push({
+        path: arr2text(torrent.info.name) + "/" + file.path.map((seg) => arr2text(seg)).join("/"),
+        size: file.length,
+      });
+    }
   }
 
   return {

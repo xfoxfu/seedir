@@ -1,73 +1,83 @@
-export interface MultipleFileTorrent {
+import { z } from "zod";
+
+export const TorrentInfoMultipleFile = z.object({
   /**
    * The files list is the value `files` maps to, and is a list of dictionaries.
    */
-  files: {
-    /** The length of the file, in bytes. */
-    length: number;
-    /**
-     * A list of UTF-8 encoded strings corresponding to subdirectory names, the
-     * last of which is the actual file name (a zero length list is an error
-     * case).
-     */
-    path: Uint8Array[];
-  }[];
-  length: undefined;
-}
+  files: z
+    .object({
+      /** The length of the file, in bytes. */
+      length: z.number(),
+      /**
+       * A list of UTF-8 encoded strings corresponding to subdirectory names, the
+       * last of which is the actual file name (a zero length list is an error
+       * case).
+       */
+      path: z.instanceof(Uint8Array).array(),
+    })
+    .array(),
+});
+export type TorrentInfoMultipleFile = z.infer<typeof TorrentInfoMultipleFile>;
 
-export interface SingleFileTorrent {
+export const TorrentInfoSingleFile = z.object({
   /** The download represents a single file. It represents a single file. */
-  length: number;
-  files: undefined;
-}
+  length: z.number(),
+});
+export type TorrentInfoSingleFile = z.infer<typeof TorrentInfoSingleFile>;
 
-export interface TorrentFileV1 {
+export const TorrentInfoCommon = z.object({
+  /**
+   * A UTF-8 encoded string which is the suggested name to save the file (or
+   * directory) as. It is purely advisory.
+   *
+   * In the single file case, the name key is the name of a file, in the
+   * muliple file case, it's the name of a directory.
+   */
+  "name": z.instanceof(Uint8Array),
+  /**
+   * The number of bytes in each piece the file is split into.
+   * For the purposes of transfer, files are split into fixed-size pieces
+   * which are all the same length except for possibly the last one which
+   * may be truncated.
+   *
+   * It is almost always a power of two, most commonly 2^18 = 256 K
+   * (BitTorrent prior to version 3.2 uses 2^20 = 1 M as default).
+   */
+  "piece length": z.number(),
+  /**
+   * a hash list, i.e., a concatenation of each piece's SHA-1 hash. As SHA-1
+   * returns a 160-bit hash, pieces will be a string whose length is a multiple
+   * of 20 bytes. If the torrent contains multiple files, the pieces are formed
+   * by concatenating the files in the order they appear in the files dictionary
+   * (i.e., all pieces in the torrent are the full piece length except for the
+   * last piece, which may be shorter).
+   */
+  "pieces": z.instanceof(Uint8Array),
+  /**
+   * When generating a metainfo file, users denote a torrent as private by
+   * including the key-value pair "private=1" in the "info" dict of the
+   * torrent's metainfo file.
+   *
+   * `0` is for compatibility with some trackers.
+   *
+   * @see BEP-0027
+   */
+  "private": z.union([z.literal(1), z.literal(0)]).optional(),
+});
+export type TorrentInfoCommon = z.infer<typeof TorrentInfoCommon>;
+
+export const TorrentInfo = z.union([TorrentInfoMultipleFile, TorrentInfoSingleFile]).and(TorrentInfoCommon);
+export type TorrentInfo = z.infer<typeof TorrentInfo>;
+
+export const TorrentV1 = z.object({
   /**
    * The URL of the tracker.
    *
    * Optional for compatiblity with some trackers.
    */
-  "announce"?: Uint8Array;
+  "announce": z.instanceof(Uint8Array).optional(),
   /** This maps to a dictionary, with keys described below. */
-  "info": (MultipleFileTorrent | SingleFileTorrent) & {
-    /**
-     * A UTF-8 encoded string which is the suggested name to save the file (or
-     * directory) as. It is purely advisory.
-     *
-     * In the single file case, the name key is the name of a file, in the
-     * muliple file case, it's the name of a directory.
-     */
-    "name": Uint8Array;
-    /**
-     * The number of bytes in each piece the file is split into.
-     * For the purposes of transfer, files are split into fixed-size pieces
-     * which are all the same length except for possibly the last one which
-     * may be truncated.
-     *
-     * It is almost always a power of two, most commonly 2^18 = 256 K
-     * (BitTorrent prior to version 3.2 uses 2^20 = 1 M as default).
-     */
-    "piece length": number;
-    /**
-     * a hash list, i.e., a concatenation of each piece's SHA-1 hash. As SHA-1
-     * returns a 160-bit hash, pieces will be a string whose length is a multiple
-     * of 20 bytes. If the torrent contains multiple files, the pieces are formed
-     * by concatenating the files in the order they appear in the files dictionary
-     * (i.e., all pieces in the torrent are the full piece length except for the
-     * last piece, which may be shorter).
-     */
-    "pieces": Uint8Array;
-    /**
-     * When generating a metainfo file, users denote a torrent as private by
-     * including the key-value pair "private=1" in the "info" dict of the
-     * torrent's metainfo file.
-     *
-     * `0` is for compatibility with some trackers.
-     *
-     * @see BEP-0027
-     */
-    "private"?: 1 | 0;
-  };
+  "info": TorrentInfo,
   /**
    * A trackerless torrent dictionary does not have an "announce" key. Instead,
    * a trackerless torrent has a "nodes" key. This key should be set to the K
@@ -83,7 +93,10 @@ export interface TorrentFileV1 {
    *
    * @see BEP-0005
    */
-  "nodes"?: [Uint8Array, number][];
+  "nodes": z
+    .tuple([z.instanceof(Uint8Array), z.number()])
+    .array()
+    .optional(),
   /**
    * In addition to the standard "announce" key, in the main area of the
    * metadata file and not part of the "info" section, will be a new key,
@@ -95,7 +108,7 @@ export interface TorrentFileV1 {
    *
    * @see BEP-0012
    */
-  "announce-list"?: Uint8Array[][];
+  "announce-list": z.instanceof(Uint8Array).array().array().optional(),
   /**
    * In the main area of the metadata file and not part of the "info" section,
    * will be a new key, "url-list". This key will refer to a one or more URLs,
@@ -109,8 +122,9 @@ export interface TorrentFileV1 {
    *
    * @see BEP-0019
    */
-  "url-list"?: Uint8Array[];
-}
+  "url-list": z.instanceof(Uint8Array).array().optional(),
+});
+export type TorrentV1 = z.infer<typeof TorrentV1>;
 
 export interface TorrentFileV2FileTree {
   [P: string]:
