@@ -76,7 +76,7 @@ export class Worker {
       hasNew = await this.processSourceAtPage(source, page);
       page += 1;
       if (page > 2) break;
-    } while (hasNew);
+    } while (hasNew && source.supportPagination);
   }
 
   public async processAllSources(): Promise<void> {

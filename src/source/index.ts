@@ -2,6 +2,7 @@ export abstract class Source {
   public abstract name: string;
   public abstract link: string;
   public abstract getPage(page: number): Promise<Item[]>;
+  public supportPagination: boolean = true;
 }
 
 export interface Item {
