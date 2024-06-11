@@ -15,6 +15,11 @@ export class RssSource extends Source {
     return item.enclosure.url;
   }
 
+  public getSourceUrl(item: RssItem): string {
+    if (!item.link) throw new Error("item missing link: " + JSON.stringify(item));
+    return item.link;
+  }
+
   public override async getPage(page: number): Promise<Item[]> {
     const content = await ky
       .get(this.pageTemplate.replaceAll("$page", page.toString()), {
@@ -27,11 +32,10 @@ export class RssSource extends Source {
       feed?.items.map((item) => {
         if (!item.title) throw new Error("item missing title: " + JSON.stringify(item));
         if (!item.pubDate) throw new Error("item missing pubDate: " + JSON.stringify(item));
-        if (!item.link) throw new Error("item missing link: " + JSON.stringify(item));
         return {
           title: item.title,
           published_at: new Date(item.pubDate),
-          source_link: item.link,
+          source_link: this.getSourceUrl(item),
           torrent_link: this.getTorrentUrl(item),
         } satisfies Item;
       }) ?? []
@@ -54,7 +58,7 @@ export class AcgRipRssSource extends RssSource {
 
 export class DmhyRssSource extends RssSource {
   constructor() {
-    super("dmhy", "https://share.dmhy.org", "https://share.dmhy.org/topics/rss/page/$page/rss.xml");
+    super("dmhy", "https://share.dmhy.org", "https://share.dmhy.org/topics/rss/rss.xml");
   }
 
   public override getTorrentUrl(item: RssItem): string {
@@ -62,4 +66,38 @@ export class DmhyRssSource extends RssSource {
     const pubDateStr = formatInTimeZone(pubDate, "+08:00", "yyyy/MM/dd");
     return `https://dl.dmhy.org/${pubDateStr}/${magnetDecode(item.enclosure?.url ?? "").infoHash}.torrent`;
   }
+
+  public override supportPagination = false;
+}
+
+export class NyaaRssSource extends RssSource {
+  constructor() {
+    super("Nyaa", "https://nyaa.si", "https://nyaa.si/?page=rss");
+  }
+
+  public override getTorrentUrl(item: RssItem): string {
+    if (!item.link) throw new Error("item missing link: " + JSON.stringify(item));
+    return item.link;
+  }
+
+  public override getSourceUrl(item: Parser.Item): string {
+    if (!item.guid) throw new Error("item missing guid: " + JSON.stringify(item));
+    return item.guid;
+  }
+
+  public override supportPagination = false;
+}
+
+export class AcgnxRssSource extends RssSource {
+  constructor() {
+    super("Acgnx", "https://share.acgnx.se", "https://www.acgnx.se/rss.xml");
+  }
+
+  public override getTorrentUrl(item: RssItem): string {
+    const parsedDate = date.parse(item.pubDate!, "EEE, dd MMM yyyy HH:mm:ss XX", Date.now());
+    const timestamp = date.getUnixTime(parsedDate);
+    return `https://www.acgnx.se/down.php?date=${timestamp}&hash=${magnetDecode(item.enclosure?.url ?? "").infoHash}`;
+  }
+
+  public override supportPagination = false;
 }

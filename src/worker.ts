@@ -4,7 +4,7 @@ import { enrichTorrentRemote } from "./lib/torrent_enrich.js";
 import { logger } from "./log.js";
 import { BangumiMoeSource } from "./source/bangumi.js";
 import { Source } from "./source/index.js";
-import { AcgRipRssSource, DmhyRssSource } from "./source/rss.js";
+import { AcgRipRssSource, AcgnxRssSource, DmhyRssSource, NyaaRssSource } from "./source/rss.js";
 import * as Sentry from "@sentry/node";
 import { eq } from "drizzle-orm/expressions";
 
@@ -18,7 +18,13 @@ export class Worker {
   protected processing = false;
 
   constructor() {
-    this.sources = [new AcgRipRssSource(), new BangumiMoeSource(), new DmhyRssSource()];
+    this.sources = [
+      new AcgRipRssSource(),
+      new BangumiMoeSource(),
+      new DmhyRssSource(),
+      new NyaaRssSource(),
+      new AcgnxRssSource(),
+    ];
   }
 
   protected async processSourceAtPage(source: Source, page: number): Promise<boolean> {
@@ -94,6 +100,12 @@ export class Worker {
         break;
       }
     } while (hasNew && source.supportPagination);
+    if (!hasNew) {
+      logger.info(`stopping ${source.name} since hasNew=${hasNew}`);
+    }
+    if (!source.supportPagination) {
+      logger.info(`stopping ${source.name} since supportPagination=${source.supportPagination}`);
+    }
   }
 
   public async processAllSources(): Promise<void> {
