@@ -9,7 +9,7 @@
   "scripts": {
     "build": "concurrently 'pnpm:build:*' --group",
     "build:ts": "tsc",
-    "build:tailwind": "tailwindcss -o public/style.css",
+    "build:tailwind": "tailwindcss -m -o public/style.css",
     "dev": "pnpm start:dev",
     "test": "c8 --all --src dist --reporter text-summary ava",
     "test:watch": "ava --watch",
@@ -19,7 +19,9 @@
     "lint": "concurrently 'pnpm:lint:*' --group",
     "format": "prettier --ignore-unknown --write 'src/**/*'",
     "start": "node --import @sentry/node/preload dist/main.js",
-    "start:dev": "tsx watch --clear-screen=false --import @sentry/node/preload src/main.ts | pino-pretty",
+    "start:dev": "concurrently 'pnpm:start:dev:*'",
+    "start:dev:server": "tsx watch --clear-screen=false --import @sentry/node/preload src/main.ts | pino-pretty",
+    "start:dev:tailwind": "tailwindcss -w -m -o public/style.css",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org xfoxfu --project seedir ./dist && sentry-cli sourcemaps upload --org xfoxfu --project seedir ./dist"
   },
   "keywords": [],

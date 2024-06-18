@@ -19,16 +19,23 @@ if (config.sentry_dsn) {
 
 const app = express();
 
-app.use(pinoHttp({ logger }));
+app.use(pinoHttp({ logger, quietReqLogger: true, autoLogging: false }));
 
-app.get("/", (req, res, next) => {
+app.get("/torrents", (req, res, next) => {
   (async () => {
+    if (!req.query["filter"]) {
+      res.status(400).json({ error: "filter query parameter is required" });
+    }
+
     res.status(200).json(
       await db.query.torrent.findMany({
         with: {
           torrent_files: true,
           listings: true,
         },
+        where: ({ title }, { sql }) => sql<string>`${title} ~* ${req.query["filter"]}`,
+        orderBy: ({ id }, { desc }) => desc(id),
+        limit: 50,
       }),
     );
   })().catch((err) => next(err));
