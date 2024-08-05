@@ -20,13 +20,21 @@ export class RssSource extends Source {
     return item.link;
   }
 
+  public getInfoHash(_item: RssItem): string | undefined {
+    return undefined;
+  }
+
+  public getParserConfig(): Parser.ParserOptions<unknown, unknown> {
+    return {};
+  }
+
   public override async getPage(page: number): Promise<Item[]> {
     const content = await ky
       .get(this.pageTemplate.replaceAll("$page", page.toString()), {
         headers: { "User-Agent": USER_AGENT },
       })
       .text();
-    const parser = new Parser();
+    const parser = new Parser(this.getParserConfig());
     const feed = await parser.parseString(content);
     return (
       feed?.items.map((item) => {
@@ -37,6 +45,7 @@ export class RssSource extends Source {
           published_at: new Date(item.pubDate),
           source_link: this.getSourceUrl(item),
           torrent_link: this.getTorrentUrl(item),
+          info_hash: this.getInfoHash(item),
         } satisfies Item;
       }) ?? []
     );
@@ -64,10 +73,14 @@ export class DmhyRssSource extends RssSource {
   public override getTorrentUrl(item: RssItem): string {
     const pubDate = date.parse(item.pubDate!, "EEE, dd MMM yyyy HH:mm:ss XX", Date.now());
     const pubDateStr = formatInTimeZone(pubDate, "+08:00", "yyyy/MM/dd");
-    return `https://dl.dmhy.org/${pubDateStr}/${magnetDecode(item.enclosure?.url ?? "").infoHash}.torrent`;
+    return `https://dl.dmhy.org/${pubDateStr}/${this.getInfoHash(item)}.torrent`;
   }
 
   public override supportPagination = false;
+
+  public override getInfoHash(item: Parser.Item): string | undefined {
+    return magnetDecode(item.enclosure?.url ?? "").infoHash;
+  }
 }
 
 export class NyaaRssSource extends RssSource {
@@ -86,6 +99,16 @@ export class NyaaRssSource extends RssSource {
   }
 
   public override supportPagination = false;
+
+  public override getParserConfig(): Parser.ParserOptions<unknown, unknown> {
+    return {
+      customFields: { item: ["nyaa:infoHash"] },
+    } as unknown as Parser.ParserOptions<unknown, unknown>;
+  }
+
+  public override getInfoHash(item: Parser.Item): string | undefined {
+    return (item as unknown as Record<string, string>)["nyaa:infoHash"];
+  }
 }
 
 export class AcgnxRssSource extends RssSource {
@@ -96,8 +119,12 @@ export class AcgnxRssSource extends RssSource {
   public override getTorrentUrl(item: RssItem): string {
     const parsedDate = date.parse(item.pubDate!, "EEE, dd MMM yyyy HH:mm:ss XX", Date.now());
     const timestamp = date.getUnixTime(parsedDate);
-    return `https://www.acgnx.se/down.php?date=${timestamp}&hash=${magnetDecode(item.enclosure?.url ?? "").infoHash}`;
+    return `https://www.acgnx.se/down.php?date=${timestamp}&hash=${this.getInfoHash(item)}`;
   }
 
   public override supportPagination = false;
+
+  public override getInfoHash(item: Parser.Item): string | undefined {
+    return magnetDecode(item.enclosure?.url ?? "").infoHash;
+  }
 }

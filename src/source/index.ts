@@ -10,6 +10,7 @@ export interface Item {
   published_at: Date;
   source_link: string;
   torrent_link: string;
+  info_hash?: string | undefined;
 }
 
 export const USER_AGENT = "xfoxfu/ZhuiAni.me (https://github.com/xfoxfu/ZhuiAni.me)";

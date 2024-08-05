@@ -42,6 +42,7 @@ test("can parse rss field (ACG.RIP)", async (t) => {
   t.is(content[0]?.source_link, "https://acg.rip/t/305824");
   t.is(content[0]?.torrent_link, "https://acg.rip/t/305824.torrent");
   t.deepEqual(content[0]?.published_at, new Date(1717930318000));
+  t.is(content[0]?.info_hash, undefined);
 });
 
 test("can parse rss field (dmhy)", async (t) => {
@@ -65,6 +66,7 @@ test("can parse rss field (dmhy)", async (t) => {
   );
   t.is(content[0]?.torrent_link, "https://dl.dmhy.org/2024/06/09/b8de2f71ae5acefa1d6ad16edf8b9419a22871fe.torrent");
   t.deepEqual(content[0]?.published_at, new Date(1717930319000));
+  t.is(content[0]?.info_hash, "b8de2f71ae5acefa1d6ad16edf8b9419a22871fe");
 
   t.is(content[1]?.torrent_link, "https://dl.dmhy.org/2024/06/09/264a978050e9c1ca71e4bef790ceb744b971fa15.torrent");
   t.is(content[2]?.torrent_link, "https://dl.dmhy.org/2024/06/08/c1bfad08a99ac2ea25476dbd183ea51742b7f53c.torrent");
@@ -92,6 +94,7 @@ test("can parse rss field (acgnx)", async (t) => {
     "https://www.acgnx.se/down.php?date=1718112647&hash=866ed1f2b35409efe9cdca9e0a1ce25a81586599",
   );
   t.deepEqual(content[0]?.published_at, new Date("Tue, 11 Jun 2024 13:30:47 +0000"));
+  t.is(content[0]?.info_hash, "866ed1f2b35409efe9cdca9e0a1ce25a81586599");
 
   t.is(
     content[1]?.torrent_link,
@@ -118,6 +121,7 @@ test("can parse rss field (Nyaa)", async (t) => {
   t.is(content[0]?.source_link, "https://nyaa.si/view/1832232");
   t.is(content[0]?.torrent_link, "https://nyaa.si/download/1832232.torrent");
   t.deepEqual(content[0]?.published_at, new Date("Tue, 11 Jun 2024 13:30:47 -0000"));
+  t.is(content[0]?.info_hash, "866ed1f2b35409efe9cdca9e0a1ce25a81586599");
 
   t.is(content[1]?.source_link, "https://nyaa.si/view/1832231");
   t.is(content[1]?.torrent_link, "https://nyaa.si/download/1832231.torrent");

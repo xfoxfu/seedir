@@ -19,6 +19,7 @@ export class BangumiMoeSource extends Source {
           published_at: date.parseISO(item.publish_time),
           source_link: `https://bangumi.moe/torrent/${item._id}`,
           torrent_link: `https://bangumi.moe/download/torrent/${item._id}/${item._id}.torrent`,
+          info_hash: item.infoHash,
         } satisfies Item;
       }) ?? []
     );

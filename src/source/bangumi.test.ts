@@ -29,4 +29,5 @@ test("can get page content", async (t) => {
     "https://bangumi.moe/download/torrent/666593fdbfe5da0007fb4e64/666593fdbfe5da0007fb4e64.torrent",
   );
   t.deepEqual(content[0]?.published_at, new Date(1717933053303));
+  t.deepEqual(content[0]?.info_hash, "e9de43a9729e986eebb7810df0425d4137067f62");
 });
