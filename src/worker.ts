@@ -3,7 +3,7 @@ import * as db from "./database.js";
 import { enrichTorrentRemote } from "./lib/torrent_enrich.js";
 import { logger } from "./log.js";
 import { BangumiMoeSource } from "./source/bangumi.js";
-import { Source } from "./source/index.js";
+import { Item, Source } from "./source/index.js";
 import { AcgRipRssSource, DmhyRssSource, NyaaRssSource } from "./source/rss.js";
 import * as Sentry from "@sentry/node";
 import { eq } from "drizzle-orm/expressions";
@@ -21,84 +21,94 @@ export class Worker {
     this.sources = [new AcgRipRssSource(), new BangumiMoeSource(), new DmhyRssSource(), new NyaaRssSource()];
   }
 
+  protected async processItemMatchExistingInfoHash(source: Source, item: Item): Promise<boolean> {
+    const info_hash = item.info_hash;
+    if (!info_hash) return false;
+
+    logger.info(`finding existing torrent file ${item.info_hash} for ${item.source_link}`);
+    const torrent = await db.db.query.listing.findFirst({
+      where: (listing, { eq }) => eq(listing.info_hash, info_hash),
+    });
+    if (!torrent) {
+      logger.info(`no existing data for info_hash ${info_hash}`);
+      return false;
+    }
+
+    await db.db.insert(db.listing).values({
+      title: item.title,
+      published_at: item.published_at,
+      source_site: source.link,
+      source_link: item.source_link,
+      torrent_link: item.torrent_link,
+      info_hash: info_hash,
+      torrent_id: torrent.id,
+    });
+    logger.info(`created listing for ${item.source_link}`);
+    return true;
+  }
+
+  protected async processItem(source: Source, item: Item): Promise<boolean> {
+    logger.info(`processing torrent ${item.source_link}`);
+    try {
+      const existing = await db.db.select().from(db.listing).where(eq(db.listing.torrent_link, item.torrent_link));
+      if (existing.length > 0) {
+        logger.info(`found existing data for torrent ${item.source_link}`);
+        return false;
+      }
+
+      if (await this.processItemMatchExistingInfoHash(source, item)) {
+        return true;
+      }
+
+      logger.info(`getting torrent file ${item.torrent_link} for ${item.source_link}`);
+      const enriched = await enrichTorrentRemote(item.torrent_link);
+      await db.db.transaction(async (tx) => {
+        const torrent = await tx
+          .select()
+          .from(db.torrent)
+          .where(eq(db.torrent.info_hash_norm, enriched.info_hash_normalized))
+          .for("update");
+        if (torrent.length === 0) {
+          logger.info(`no existing torrent data for ${item.source_link} (${enriched.info_hash_normalized})`);
+          const newTorrent = await tx
+            .insert(db.torrent)
+            .values({
+              title: item.title,
+              info_hash_norm: enriched.info_hash_normalized,
+            })
+            .returning();
+          await tx
+            .insert(db.torrent_file)
+            .values(enriched.files.map((f) => ({ path: f.path, size: f.size, torrent_id: newTorrent[0]!.id })));
+          torrent.push(...newTorrent);
+        }
+
+        await tx.insert(db.listing).values({
+          title: item.title,
+          published_at: item.published_at,
+          source_site: source.link,
+          source_link: item.source_link,
+          torrent_link: item.torrent_link,
+          info_hash: enriched.info_hash,
+          torrent_id: torrent[0]!.id,
+        });
+        logger.info(`created listing for ${item.source_link}`);
+      });
+      await sleep(config.worker.torrent_inverval, `config.worker.torrent_inverval on ${source.name}`);
+      return true;
+    } catch (e) {
+      logger.error(e, `failed to handle torrent ${item.source_link}: ` + (e as Error).message);
+      Sentry.captureException(e, { tags: { source: source.name, link: item.source_link } });
+      return false;
+    }
+  }
+
   protected async processSourceAtPage(source: Source, page: number): Promise<boolean> {
     logger.info(`processing ${source.name} at page ${page}`);
     const items = await source.getPage(page);
     let hasNew = false;
     for (const item of items) {
-      logger.info(`processing torrent ${item.source_link}`);
-      try {
-        const existing = await db.db.select().from(db.listing).where(eq(db.listing.torrent_link, item.torrent_link));
-        if (existing.length > 0) {
-          logger.info(`found existing data for torrent ${item.source_link}`);
-          continue;
-        }
-
-        hasNew = true;
-
-        const info_hash = item.info_hash;
-        if (info_hash) {
-          logger.info(`finding existing torrent file ${item.info_hash} for ${item.source_link}`);
-          const torrent = await db.db.query.listing.findFirst({
-            where: (listing, { eq }) => eq(listing.info_hash, info_hash),
-          });
-          if (!torrent) {
-            logger.info(`no existing data for info_hash ${info_hash}`);
-            break;
-          }
-
-          await db.db.insert(db.listing).values({
-            title: item.title,
-            published_at: item.published_at,
-            source_site: source.link,
-            source_link: item.source_link,
-            torrent_link: item.torrent_link,
-            info_hash: info_hash,
-            torrent_id: torrent.id,
-          });
-          logger.info(`created listing for ${item.source_link}`);
-          continue;
-        }
-
-        logger.info(`getting torrent file ${item.torrent_link} for ${item.source_link}`);
-        const enriched = await enrichTorrentRemote(item.torrent_link);
-        await db.db.transaction(async (tx) => {
-          const torrent = await tx
-            .select()
-            .from(db.torrent)
-            .where(eq(db.torrent.info_hash_norm, enriched.info_hash_normalized))
-            .for("update");
-          if (torrent.length === 0) {
-            logger.info(`no existing torrent data for ${item.source_link} (${enriched.info_hash_normalized})`);
-            const newTorrent = await tx
-              .insert(db.torrent)
-              .values({
-                title: item.title,
-                info_hash_norm: enriched.info_hash_normalized,
-              })
-              .returning();
-            await tx
-              .insert(db.torrent_file)
-              .values(enriched.files.map((f) => ({ path: f.path, size: f.size, torrent_id: newTorrent[0]!.id })));
-            torrent.push(...newTorrent);
-          }
-
-          await tx.insert(db.listing).values({
-            title: item.title,
-            published_at: item.published_at,
-            source_site: source.link,
-            source_link: item.source_link,
-            torrent_link: item.torrent_link,
-            info_hash: enriched.info_hash,
-            torrent_id: torrent[0]!.id,
-          });
-          logger.info(`created listing for ${item.source_link}`);
-        });
-        await sleep(config.worker.torrent_inverval, `config.worker.torrent_inverval on ${source.name}`);
-      } catch (e) {
-        logger.error(e, `failed to handle torrent ${item.source_link}: ` + (e as Error).message);
-        Sentry.captureException(e, { tags: { source: source.name, link: item.source_link } });
-      }
+      hasNew = hasNew || (await this.processItem(source, item));
     }
     logger.info(`finished ${source.name} at page ${page}, has_new=${hasNew}`);
     return hasNew;
