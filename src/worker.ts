@@ -26,10 +26,10 @@ export class Worker {
     if (!info_hash) return false;
 
     logger.info(`finding existing torrent file ${item.info_hash} for ${item.source_link}`);
-    const torrent = await db.db.query.listing.findFirst({
+    const existing_listing = await db.db.query.listing.findFirst({
       where: (listing, { eq }) => eq(listing.info_hash, info_hash),
     });
-    if (!torrent) {
+    if (!existing_listing) {
       logger.info(`no existing data for info_hash ${info_hash}`);
       return false;
     }
@@ -41,7 +41,7 @@ export class Worker {
       source_link: item.source_link,
       torrent_link: item.torrent_link,
       info_hash: info_hash,
-      torrent_id: torrent.id,
+      torrent_id: existing_listing.torrent_id,
     });
     logger.info(`created listing for ${item.source_link}`);
     return true;
