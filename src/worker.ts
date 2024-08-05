@@ -36,6 +36,30 @@ export class Worker {
 
         hasNew = true;
 
+        const info_hash = item.info_hash;
+        if (info_hash) {
+          logger.info(`finding existing torrent file ${item.info_hash} for ${item.source_link}`);
+          const torrent = await db.db.query.listing.findFirst({
+            where: (listing, { eq }) => eq(listing.info_hash, info_hash),
+          });
+          if (!torrent) {
+            logger.info(`no existing data for info_hash ${info_hash}`);
+            break;
+          }
+
+          await db.db.insert(db.listing).values({
+            title: item.title,
+            published_at: item.published_at,
+            source_site: source.link,
+            source_link: item.source_link,
+            torrent_link: item.torrent_link,
+            info_hash: info_hash,
+            torrent_id: torrent.id,
+          });
+          logger.info(`created listing for ${item.source_link}`);
+          continue;
+        }
+
         logger.info(`getting torrent file ${item.torrent_link} for ${item.source_link}`);
         const enriched = await enrichTorrentRemote(item.torrent_link);
         await db.db.transaction(async (tx) => {
